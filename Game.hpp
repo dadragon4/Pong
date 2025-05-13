@@ -7,6 +7,7 @@
 enum class GameState {
     START,
     PLAYING,
+    SERVE,
     GAME_OVER,
     THANK_YOU
 };

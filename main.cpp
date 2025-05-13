@@ -70,6 +70,16 @@ int main() {
     thankYouText.setOrigin(tyb.left + tyb.width / 2.f, tyb.top + tyb.height / 2.f);
     thankYouText.setPosition(WINDOW_WIDTH / 2.f, WINDOW_HEIGHT / 2.f);
 
+    // after thankYou Text i.e Press Space to Exit
+    sf::Text exitPrompt("Press Space to Exit", font, 20);
+    exitPrompt.setFillColor(sf::Color::White);
+    auto eB = exitPrompt.getLocalBounds();
+    exitPrompt.setOrigin(eB.left + eB.width / 2.f, eB.top + eB.height / 2.f);
+    exitPrompt.setPosition(
+        WINDOW_WIDTH / 2.f,
+        (WINDOW_HEIGHT / 2.f) + (tyb.height / 2.f) + tyb.height + spacing
+    );
+
     // Left Paddle
     sf::RectangleShape leftPaddle(sf::Vector2f(PADDLE_WIDTH, PADDLE_HEIGHT));
     leftPaddle.setPosition(50, (WINDOW_HEIGHT / 2) - (PADDLE_HEIGHT / 2));
@@ -84,6 +94,14 @@ int main() {
     sf::CircleShape ball(BALL_RADIUS);
     ball.setFillColor(sf::Color::White);
     ball.setPosition(WINDOW_WIDTH  / 2.f - BALL_RADIUS, WINDOW_HEIGHT / 2.f - BALL_RADIUS);
+
+    auto centerObjects = [&]() {
+        leftPaddle.setPosition(50.f, (WINDOW_HEIGHT - PADDLE_HEIGHT)/2.f);
+        rightPaddle.setPosition(WINDOW_WIDTH - 50.f - PADDLE_WIDTH,
+                                (WINDOW_HEIGHT - PADDLE_HEIGHT)/2.f);
+        ball.setPosition(WINDOW_WIDTH/2.f - BALL_RADIUS,
+                        WINDOW_HEIGHT/2.f - BALL_RADIUS);
+    };
 
     // Ball velocity
     sf::Vector2f ballVelocity(BALL_SPEED_X, BALL_SPEED_Y);
@@ -102,17 +120,28 @@ int main() {
                 && event.type == sf::Event::KeyPressed
                 && event.key.code == sf::Keyboard::Space) {
                 scoreLeft = scoreRight = 0; // we are resetting the score
-                resetGame(leftPaddle, rightPaddle, ball, ballVelocity, state);
+                state = GameState::PLAYING;
+                centerObjects();
+            }
+            else if (state == GameState::SERVE 
+                && event.type == sf::Event::KeyPressed
+                && event.key.code == sf::Keyboard::Space) {
+                state = GameState::PLAYING;
+
+                // Randomize ball direction
+                float vx = BALL_SPEED_X * ((std::rand() % 2) ? 1.f : -1.f);
+                float vy = BALL_SPEED_Y * ((std::rand() % 2) ? 1.f : -1.f);
+                ballVelocity = {vx, vy};
             }
             else if (state == GameState::GAME_OVER 
                 && event.type == sf::Event::KeyPressed
                 && event.key.code == sf::Keyboard::Space) {
-                resetGame(leftPaddle, rightPaddle, ball, ballVelocity, state);
+                state = GameState::THANK_YOU;
             }
             else if (state == GameState::THANK_YOU 
                 && event.type == sf::Event::KeyPressed
                 && event.key.code == sf::Keyboard::Space) {
-                state = GameState::START;
+                window.close();
             }
         }
         
@@ -154,7 +183,8 @@ int main() {
                     state = GameState::GAME_OVER;
                     gameOverText.setString("Right Player Wins!");
                 } else {
-                    resetGame(leftPaddle, rightPaddle, ball, ballVelocity, state);
+                    state = GameState::SERVE;
+                    centerObjects();
                 }
             }
 
@@ -165,7 +195,8 @@ int main() {
                     state = GameState::GAME_OVER;
                     gameOverText.setString("Left Player Wins!");
                 } else {
-                    resetGame(leftPaddle, rightPaddle, ball, ballVelocity, state);
+                    state = GameState::SERVE;
+                    centerObjects();
                 }
             }
 
@@ -198,12 +229,16 @@ int main() {
                 window.draw(rightPaddle);
                 window.draw(ball);
                 break;
+            case GameState::SERVE:
+                promptText.setString("Press Space to Serve");
+                window.draw(promptText);
+                break;
             case GameState::GAME_OVER:
                 window.draw(gameOverText);
-                window.draw(promptText);
                 break;
             case GameState::THANK_YOU:
                 window.draw(thankYouText);
+                window.draw(exitPrompt);
                 break;
         }
         
