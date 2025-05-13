@@ -1,0 +1,10 @@
+Kind of made to understand game logic and player input control.
+
+
+Would you like to:
+
+    Add scoring?
+
+    Add AI for the right paddle?
+
+    Add sound effects and polish?
